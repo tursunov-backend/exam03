@@ -101,42 +101,6 @@ pip install requests
 - ✅ Validation qoidalariga rioya qilish
 - ❌ Try-except bilan xatolarni yashirish
 
-### 4. Testing
-Har bir task uchun o'zingizning test kodlarini yozing:
-```python
-# test_book.py misoli
-book = Book(1, "Clean Code", "Robert Martin", 464)
-book.borrow("Ali")
-assert book.is_borrowed == True
-assert book.borrower == "Ali"
-print("✅ Test passed")
-```
-
----
-
-## 🎯 Baholash Mezonlari
-
-### Task 1: Book Class (35 ball)
-- Constructor va validation: 5 ball
-- Attributes to'g'ri: 5 ball
-- Core methods (`borrow`, `return_book`, `change_title`, `archive`): 12 ball
-- Dunder methods: 8 ball
-- `info()` method: 5 ball
-
-### Task 2: Cinema Booking (30 ball)
-- Nested classes to'g'ri joylashgan: 10 ball
-- Constructor va initialization: 5 ball
-- `book_seat()` to'g'ri ishlaydi: 10 ball
-- `available_seats()` to'g'ri: 3 ball
-- `__str__()` mavjud: 2 ball
-
-### Task 3: Random Image Bot (35 ball)
-- Arxitektura to'g'ri (3 class): 12 ball
-- API integration ishlaydi: 10 ball
-- Telegram handlers to'g'ri: 8 ball
-- Inline keyboard mavjud: 3 ball
-- `send_photo()` ishlatilgan: 2 ball
-
 ---
 
 ## 📤 Topshirish
@@ -144,7 +108,8 @@ print("✅ Test passed")
 ### Fayl Tuzilishi
 ```
 exam03/
-├── README.md (ushbu fayl)
+├── README.md
+├── .gitignore
 ├── task01/
 │   ├── book.py
 │   └── test_book.py (ixtiyoriy)
@@ -156,17 +121,8 @@ exam03/
     ├── image_service.py
     ├── handlers.py
     ├── main.py
+    ├── .env.sample
     └── requirements.txt
-```
-
-### Git Orqali Topshirish
-```bash
-# Repository yaratish
-git init
-git add .
-git commit -m "Final exam solution"
-git remote add origin <your-repo-url>
-git push -u origin main
 ```
 
 ---
