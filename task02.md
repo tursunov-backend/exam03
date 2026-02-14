@@ -21,32 +21,90 @@ Siz kinoteattr uchun chipta bron qilish tizimini yozasiz.
 5. Tizim bo'sh joylarni ko'rsatadi: [2, 4, 5]
 ```
 
-### Klasslar Strukturasi
+### Klasslar Strukturasi va Bog'lanish
 
 ```
-CinemaSession (Seans)
- ├── Seat (O'rin) - har bir stul/o'rin
- └── Ticket (Chipta) - kim qaysi o'ringa chipta olgan
+Seat (O'rin)
+  ↓ ishlatiladi
+Ticket (Chipta) - Seat obyektiga murojaat qiladi
+  ↓ saqlaydi
+CinemaSession (Seans) - Seat va Ticket obyektlarini boshqaradi
 ```
 
-**Nested Class Nima?**
-`Seat` va `Ticket` classlarini `CinemaSession` **ichida** yozamiz. Chunki o'rinlar va chiптalar faqat seans mavjud bo'lganda kerak. Seans yo'q = o'rinlar ham yo'q.
+**Composition (Tarkib) Nima?**
+- `Seat` - alohida class (o'rinni ifodalaydi)
+- `Ticket` - alohida class, ichida `Seat` obyekti bor
+- `CinemaSession` - asosiy class, `Seat` va `Ticket` obyektlarini yaratadi va boshqaradi
+
+**Muhim:** Har bir class **alohida** yoziladi, lekin ular bir-biri bilan bog'langan.
 
 ---
 
-## Umumiy Tavsif
-Kinoteattr uchun oddiy chipta bron qilish tizimi. Faqat bron qilish va bo'sh joylarni ko'rish.
+## 1. Seat Class
 
-**Muhim:** Yordamchi classlar (`Seat`, `Ticket`) faqat `CinemaSession` **ichida** yoziladi.
+O'rinni ifodalaydi.
 
----
-
-## 1. Asosiy Class
+### Constructor
 
 ```python
-class CinemaSession:
-    # Nested classlar shu yerda
+Seat(number: int)
 ```
+
+### Attributelar
+
+| Nomi | Turi | Boshlang'ich | Tavsif |
+|------|------|--------------|--------|
+| `number` | int | constructordan | O'rin raqami |
+| `is_taken` | bool | `False` | Bandmi? |
+
+### Misol
+
+```python
+seat = Seat(3)
+print(seat.number)    # 3
+print(seat.is_taken)  # False
+
+seat.is_taken = True
+print(seat.is_taken)  # True
+```
+
+---
+
+## 2. Ticket Class
+
+Chipta - qaysi o'rin va kim olgani.
+
+### Constructor
+
+```python
+Ticket(seat: Seat, owner: str)
+```
+
+**Muhim:** `seat` parametri `Seat` class obyekti bo'lishi kerak!
+
+### Attributelar
+
+| Nomi | Turi | Tavsif |
+|------|------|--------|
+| `seat` | Seat | Qaysi o'rin obyekti |
+| `owner` | str | Kim olgan |
+
+### Misol
+
+```python
+seat = Seat(5)
+ticket = Ticket(seat, "Ali")
+
+print(ticket.owner)         # "Ali"
+print(ticket.seat.number)   # 5
+print(ticket.seat.is_taken) # False (hali band qilinmagan)
+```
+
+---
+
+## 3. CinemaSession Class
+
+Asosiy class - butun tizimni boshqaradi.
 
 ### Constructor
 
@@ -64,71 +122,56 @@ CinemaSession(movie_title: str, total_seats: int)
 |------|------|--------|
 | `movie_title` | str | Film nomi |
 | `total_seats` | int | Jami o'rinlar |
-| `seats` | list[Seat] | Barcha o'rinlar (1 dan total_seats gacha) |
-| `bookings` | list[Ticket] | Bron qilingan chiптalar |
+| `seats` | list[Seat] | Barcha Seat obyektlari |
+| `bookings` | list[Ticket] | Barcha Ticket obyektlari |
 
-**Eslatma:** Constructor da `seats` listini yaratib, ichiga `Seat(1)`, `Seat(2)`, ... `Seat(total_seats)` qo'shish kerak.
+**Constructor da bajariladigan ishlar:**
+1. Attributelarni o'rnatish
+2. `seats` listini yaratish
+3. Har bir o'rin uchun `Seat` obyekti yaratish va listga qo'shish
 
----
-
-## 2. Nested Classlar
-
-### 2.1 `Seat` (Nested)
-
-**Constructor:**
 ```python
-Seat(number: int)
+# Constructor ichida
+self.seats = []
+for i in range(1, total_seats + 1):
+    self.seats.append(Seat(i))
 ```
 
-**Attributelar:**
-
-| Nomi | Turi | Boshlang'ich | Tavsif |
-|------|------|--------------|--------|
-| `number` | int | constructordan | O'rin raqami |
-| `is_taken` | bool | `False` | Bandmi? |
-
 ---
 
-### 2.2 `Ticket` (Nested)
-
-**Constructor:**
-```python
-Ticket(seat: Seat, owner: str)
-```
-
-**Attributelar:**
-
-| Nomi | Turi | Tavsif |
-|------|------|--------|
-| `seat` | Seat | Qaysi o'rin |
-| `owner` | str | Kim olgan |
-
----
-
-## 3. Metodlar
+## 4. CinemaSession Metodlari
 
 ### `available_seats() -> list[int]`
 
-Bo'sh o'rinlar raqamini qaytaradi.
+Bo'sh o'rinlar raqamlarini qaytaradi.
 
 **Bajarilishi:**
-- `self.seats` ichidan `is_taken == False` bo'lganlarning `number` ini listga yig'ish
+```python
+# Pseudocode
+result = []
+for seat in self.seats:
+    if not seat.is_taken:
+        result.append(seat.number)
+return result
+```
 
 ---
 
 ### `book_seat(seat_number: int, user: str) -> Ticket`
 
-Chipta bron qiladi.
+Chipta bron qiladi va `Ticket` obyektini qaytaradi.
 
 **Bajarilishi:**
 1. `seat_number` to'g'ri oraliqda borligini tekshirish (1 ≤ seat_number ≤ total_seats)
    - Agar yo'q bo'lsa → `ValueError`
-2. `self.seats` dan tegishli `Seat` ni topish
+2. `self.seats` dan tegishli `Seat` obyektini topish
 3. Agar `seat.is_taken == True` → `RuntimeError` (allaqachon olingan)
 4. `seat.is_taken = True` qilish
-5. `Ticket(seat, user)` yaratish
+5. `Ticket(seat, user)` obyekti yaratish
 6. `self.bookings` ga qo'shish
-7. Ticket ni qaytarish
+7. `Ticket` obyektini qaytarish
+
+**Muhim:** Siz `Ticket` yaratayotganda, `seat` obyektini (butun obyekt) berasiz, faqat raqamni emas!
 
 ---
 
@@ -142,46 +185,129 @@ Format: `CinemaSession: {movie_title} ({total_seats} seats)`
 
 ---
 
-## 4. Foydalanish
+## 5. To'liq Foydalanish Misoli
 
 ```python
-# Seans yaratish
+# 1. Classlarni import qilish yoki yaratish
+# seat.py da Seat class
+# ticket.py da Ticket class  
+# cinema_session.py da CinemaSession class
+
+# 2. Seans yaratish
 session = CinemaSession("Avatar 2", 5)
 
-# Bo'sh joylar
+# 3. Bo'sh joylarni ko'rish
 print(session.available_seats())  # [1, 2, 3, 4, 5]
 
-# Bron qilish
+# 4. Bron qilish
 ticket1 = session.book_seat(3, "Ali")
-print(ticket1.owner)  # "Ali"
-print(ticket1.seat.number)  # 3
+print(ticket1.owner)              # "Ali"
+print(ticket1.seat.number)        # 3
+print(ticket1.seat.is_taken)      # True
 
-# Bo'sh joylar
+# 5. Bo'sh joylar
 print(session.available_seats())  # [1, 2, 4, 5]
 
-# Yana bron
+# 6. Yana bron
 ticket2 = session.book_seat(1, "Vali")
-
-# Bo'sh joylar
 print(session.available_seats())  # [2, 4, 5]
 
-# Olingan joyga yana bron (xato)
-session.book_seat(3, "Sardor")  # RuntimeError
+# 7. Olingan joyga yana bron (xato)
+try:
+    session.book_seat(3, "Sardor")
+except RuntimeError as e:
+    print("Xato: O'rin allaqachon olingan!")
 
-# String
+# 8. String representation
 print(session)  # CinemaSession: Avatar 2 (5 seats)
+
+# 9. Bookings ro'yxatini ko'rish
+print(f"Jami bron: {len(session.bookings)}")  # 2
+for ticket in session.bookings:
+    print(f"O'rin {ticket.seat.number}: {ticket.owner}")
 ```
 
 ---
 
-## 5. Muhim Nuqtalar
+## 6. Classlar Orasidagi Bog'lanish
 
-✅ **Seat va Ticket nested** - global emas, faqat CinemaSession ichida
+```python
+# Seat - mustaqil class
+class Seat:
+    def __init__(self, number: int):
+        self.number = number
+        self.is_taken = False
 
-✅ **Constructor seats yaratadi** - boshida barcha o'rinlar bo'sh
+# Ticket - Seat obyektidan foydalanadi
+class Ticket:
+    def __init__(self, seat: Seat, owner: str):
+        self.seat = seat      # Seat obyekti saqlanadi
+        self.owner = owner
 
-✅ **book_seat Ticket qaytaradi** - to'g'ri return type
+# CinemaSession - Seat va Ticket obyektlarini yaratadi va boshqaradi
+class CinemaSession:
+    def __init__(self, movie_title: str, total_seats: int):
+        self.seats = [Seat(i) for i in range(1, total_seats + 1)]
+        self.bookings = []
+    
+    def book_seat(self, seat_number: int, user: str) -> Ticket:
+        # Seat obyektini topish
+        # Ticket yaratish
+        # Saqlash
+        return ticket
+```
+
+---
+
+## 7. Fayl Strukturasi
+
+```
+task02/
+├── seat.py          # Seat class
+├── ticket.py        # Ticket class
+├── cinema_session.py # CinemaSession class
+└── main.py          # Test/demo kod
+```
+
+**seat.py:**
+```python
+class Seat:
+    def __init__(self, number: int):
+        self.number = number
+        self.is_taken = False
+```
+
+**ticket.py:**
+```python
+from seat import Seat
+
+class Ticket:
+    def __init__(self, seat: Seat, owner: str):
+        self.seat = seat
+        self.owner = owner
+```
+
+**cinema_session.py:**
+```python
+from seat import Seat
+from ticket import Ticket
+
+class CinemaSession:
+    # ... kodingiz
+```
+
+---
+
+## 8. Muhim Nuqtalar
+
+✅ **Har bir class alohida** - Seat, Ticket, CinemaSession alohida fayllar
+
+✅ **Composition** - Ticket ichida Seat obyekti bor
+
+✅ **Constructor seats yaratadi** - CinemaSession boshida barcha Seat larni yaratadi
+
+✅ **book_seat Ticket obyekti qaytaradi** - to'g'ri return type
 
 ✅ **Band o'ringa bron qilib bo'lmaydi** - RuntimeError
 
-✅ **available_seats to'g'ri ishlaydi** - faqat bo'sh joylar
+✅ **available_seats faqat bo'sh joylar** - is_taken == False
